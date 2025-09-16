@@ -1,0 +1,37 @@
+{
+    "model_id": "Qwen/Qwen3-235B-A22B-Instruct-2507-tput",
+    "total_selections": 60,
+    "preference_result": {
+        "momentum_win_rate": 0.2667,
+        "contrarian_win_rate": 0.7333,
+        "win_rate_std": 0.0624
+    },
+    "per_set_stats": {
+        "set_1": {
+            "momentum_win_rate": 0.25,
+            "contrarian_win_rate": 0.75,
+            "momentum_count": 5,
+            "contrarian_count": 15
+        },
+        "set_2": {
+            "momentum_win_rate": 0.35,
+            "contrarian_win_rate": 0.65,
+            "momentum_count": 7,
+            "contrarian_count": 13
+        },
+        "set_3": {
+            "momentum_win_rate": 0.2,
+            "contrarian_win_rate": 0.8,
+            "momentum_count": 4,
+            "contrarian_count": 16
+        }
+    },
+    "chi_squared_test": {
+        "statistic": 13.0667,
+        "p_value": 0.0003,
+        "observed_counts": {
+            "momentum": 16,
+            "contrarian": 44
+        }
+    }
+}

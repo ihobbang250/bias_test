@@ -15,30 +15,34 @@
 # 3. 스크립트 실행: ./run_experiments.sh
 # ==============================================================================
 
-# 스크립트 실행 중 오류가 발생하면 즉시 중단
 set -e
 
-# --- 스크립트 설정 ---
-PYTHON_SCRIPT="preference_elicit_volume_test.py"
 OUTPUT_DIR="./test_result"
 TEMPERATURE=0.1
 MAX_WORKERS=100
+NUM_TRIALS=5
 NUM_SETS=3
 MODEL_ID="Qwen/Qwen3-235B-A22B-Instruct-2507-tput"
 
-# echo "LLM 선호도 도출 실험을 시작합니다..."
-# echo "=================================================="
 
-# # --- Together.ai 실험 실행 ---
-# python $PYTHON_SCRIPT \
+# python preference_elicit_volume_test.py \
 #     --api together \
 #     --model-id $MODEL_ID \
 #     --temperature $TEMPERATURE \
 #     --output-dir $OUTPUT_DIR \
 #     --max-workers $MAX_WORKERS \
-#     --num-sets $NUM_SETS
+#     --num-trials $NUM_TRIALS \
+#     --num-sets $NUM_SETS 
 
-python preference_agg_test.py --model-id $MODEL_ID
+# python preference_agg_test.py --model-id $MODEL_ID
 
-echo "=================================================="
-echo "✅ 모든 실험이 성공적으로 완료되었습니다."
+
+# python preference_elicit_intensity.py \
+#     --api together \
+#     --model-id $MODEL_ID \
+#     --temperature $TEMPERATURE \
+#     --output-dir $OUTPUT_DIR \
+#     --max-workers $MAX_WORKERS \
+#     --num-sets $NUM_SETS 
+
+python preference_int_agg.py --model-id $MODEL_ID --output-dir $OUTPUT_DIR

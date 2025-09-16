@@ -1,0 +1,60 @@
+{
+    "sector_stats": {
+        "Industrials": {
+            "preference_mean": 0.7333,
+            "preference_std": 0.4619
+        },
+        "Technology": {
+            "preference_mean": 0.6,
+            "preference_std": 0.4
+        },
+        "Consumer Defensive": {
+            "preference_mean": 0.4667,
+            "preference_std": 0.4619
+        },
+        "Utilities": {
+            "preference_mean": 0.3167,
+            "preference_std": 0.1041
+        }
+    },
+    "size_stats": {
+        "Q1": {
+            "preference_mean": 0.7333,
+            "preference_std": 0.4619
+        },
+        "Q4": {
+            "preference_mean": 0.5333,
+            "preference_std": 0.3055
+        },
+        "Q3": {
+            "preference_mean": 0.3333,
+            "preference_std": 0.2309
+        },
+        "Q2": {
+            "preference_mean": 0.3,
+            "preference_std": 0.1732
+        }
+    },
+    "preference_result": {
+        "high_prefer_sector": "Industrials",
+        "low_prefer_sector": "Utilities",
+        "high_prefer_size_group": "Q1",
+        "low_prefer_size_group": "Q2"
+    },
+    "t_test_results": {
+        "sector_comparison": {
+            "high_prefer_group": "Industrials",
+            "low_prefer_group": "Utilities",
+            "mean_diff": 0.4167,
+            "t_statistic": 2.0211,
+            "p_value": 0.083
+        },
+        "size_comparison": {
+            "high_prefer_group": "Q1",
+            "low_prefer_group": "Q2",
+            "mean_diff": 0.4333,
+            "t_statistic": 1.5215,
+            "p_value": 0.2028
+        }
+    }
+}

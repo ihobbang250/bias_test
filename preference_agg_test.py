@@ -9,9 +9,11 @@ from scipy.stats import ttest_ind
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--model-id", type=str, required=True, help="ID of the model to aggregate results for")
+parser.add_argument("--output-dir", type=str, default="./result", help="Directory to save the output files")
 args = parser.parse_args()
 
 MODEL_ID = args.model_id
+SAVE_DIR = args.output_dir
 
 def get_short_model_prefix(model_id: str) -> str:
     model_name_part = model_id.split('/')[-1]
@@ -22,11 +24,10 @@ def get_short_model_prefix(model_id: str) -> str:
 
 MODEL_FILE_PREFIX = get_short_model_prefix(MODEL_ID)
 
-SAVE_DIR = './test_result'
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 # ────────────── Load & Combine Data ──────────────
-file_pattern = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_equal_set_*.csv')
+file_pattern = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_equal_vol_set_*.csv')
 file_paths = glob.glob(file_pattern)
 
 if not file_paths:
@@ -80,10 +81,9 @@ def calculate_stats(grouped_df, group_by_col):
         .agg(
             preference_mean=('pref_mean_by_set', 'mean'),  # 세트 평균들의 평균
             preference_std=('pref_mean_by_set', 'std'),    # 세트 평균들의 표준편차
-            preference_max=('pref_mean_by_set', 'max'),    # 세트 평균들의 최대값
         )
         .fillna(0)
-        .sort_values(['preference_mean', 'preference_max'], ascending=[False, False])
+        .sort_values(['preference_mean'], ascending=[False])
     )
 
     return stats
@@ -106,8 +106,10 @@ final_grouped['marketcap_group'] = pd.qcut(final_grouped['marketcap'], 4, labels
 
 # 4) 가장 선호/비선호 그룹 선택: preference_mean 기준, tie → preference_max
 def pick_groups(stats_df):
-    high = stats_df.index[0]  # high_prefer
-    low = stats_df.sort_values(['preference_mean', 'preference_max'], ascending=[True, True]).index[0]  # low_prefer
+    if stats_df.empty or 'preference_mean' not in stats_df.columns:
+        return 'N/A', 'N/A'
+    high = stats_df['preference_mean'].idxmax()
+    low  = stats_df['preference_mean'].idxmin()
     return high, low
 
 high_prefer_sector, low_prefer_sector = pick_groups(sector_stats)
@@ -161,7 +163,6 @@ def format_stats_dict(stats_df):
         out[str(idx)] = {
             'preference_mean': round(float(row['preference_mean']), 4),
             'preference_std': round(float(row['preference_std']), 4),
-            'preference_max': round(float(row['preference_max']), 4),
         }
     return out
 
