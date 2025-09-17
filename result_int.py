@@ -6,6 +6,8 @@ import numpy as np
 from scipy.stats import chisquare
 import argparse
 
+from utils import get_short_model_prefix
+
 # ────────────── Configuration ──────────────
 parser = argparse.ArgumentParser(description="Aggregate intensity experiment results for a given model.")
 parser.add_argument("--model-id", type=str, required=True, help="ID of the model to aggregate results for")
@@ -14,16 +16,8 @@ args = parser.parse_args()
 
 MODEL_ID = args.model_id
 SAVE_DIR = args.output_dir
-
-def get_short_model_prefix(model_id: str) -> str:
-    """Creates a short, file-safe prefix from the model ID."""
-    model_name_part = model_id.split('/')[-1]
-    parts = model_name_part.split('-')
-    if len(parts) >= 2:
-        return f"{parts[0]}-{parts[1]}"
-    return model_name_part
-
 MODEL_FILE_PREFIX = get_short_model_prefix(MODEL_ID)
+
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 # ────────────── Load & Combine Data ──────────────
@@ -42,7 +36,8 @@ for i, path in enumerate(file_paths, 1):
     df_list.append(temp_df)
 
 df = pd.concat(df_list, ignore_index=True)
-
+combined_csv_path = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_int_combined.csv')
+df.to_csv(combined_csv_path, index=False)
 print(f"Combined {len(file_paths)} CSV files into a single DataFrame with {len(df)} rows.")
 
 # ────────────── Data Analysis ──────────────
@@ -127,7 +122,7 @@ summary = {
     'chi_squared_test': chi_squared_result
 }
 
-summary_path = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_intensity_summary.json')
+summary_path = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_int_result.json')
 with open(summary_path, 'w', encoding='utf-8') as f:
     json.dump(summary, f, indent=4, ensure_ascii=False)
 

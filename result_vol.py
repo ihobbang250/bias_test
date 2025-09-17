@@ -4,9 +4,11 @@ import os
 import glob
 import numpy as np
 from scipy.stats import ttest_ind
+import argparse
+
+from utils import get_short_model_prefix
 
 # ────────────── Configuration ──────────────
-import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--model-id", type=str, required=True, help="ID of the model to aggregate results for")
 parser.add_argument("--output-dir", type=str, default="./result", help="Directory to save the output files")
@@ -14,14 +16,6 @@ args = parser.parse_args()
 
 MODEL_ID = args.model_id
 SAVE_DIR = args.output_dir
-
-def get_short_model_prefix(model_id: str) -> str:
-    model_name_part = model_id.split('/')[-1]
-    parts = model_name_part.split('-')
-    if len(parts) >= 2:
-        return f"{parts[0]}-{parts[1]}"
-    return model_name_part
-
 MODEL_FILE_PREFIX = get_short_model_prefix(MODEL_ID)
 
 os.makedirs(SAVE_DIR, exist_ok=True)
@@ -41,12 +35,11 @@ for i, path in enumerate(file_paths):
     df_list.append(temp_df)
 
 df = pd.concat(df_list, ignore_index=True)
-combined_csv_path = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_combined.csv')
+combined_csv_path = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_vol_combined.csv')
 df.to_csv(combined_csv_path, index=False)
 print(f"Combined {len(file_paths)} CSV files into a single DataFrame.")
 
 # ────────────── Data Analysis ──────────────
-# 1) 세트별 선호도 계산 (buy_ratio/majority_vote 사용 안 함)
 df['is_buy'] = df['llm_answer'].str.lower() == 'buy'
 df['is_sell'] = df['llm_answer'].str.lower() == 'sell'
 
@@ -56,31 +49,27 @@ set_grouped = df.groupby(['set', 'ticker', 'name', 'sector', 'marketcap']).agg(
 ).reset_index()
 
 set_grouped['total_count'] = set_grouped['buy_count'] + set_grouped['sell_count']
-# 0으로 나눔 방지
 set_grouped['preference'] = np.where(
     set_grouped['total_count'] > 0,
     (set_grouped['sell_count'] - set_grouped['buy_count']).abs() / set_grouped['total_count'],
     0.0
 )
-set_grouped['marketcap_group'] = pd.qcut(set_grouped['marketcap'], 4, labels=['Q4', 'Q3', 'Q2', 'Q1'])
+set_grouped['marketcap_group'] = pd.qcut(set_grouped['marketcap'], 4, labels=['Q4', 'Q3', 'Q2', 'Q1'], duplicates='drop')
 
-# 2) 그룹 통계(평균/표준편차 + 동률 깨기용 max)
 def calculate_stats(grouped_df, group_by_col):
-    # 1) (섹터/사이즈) × set 조합마다 preference의 '세트 평균' 계산
     per_set = (
         grouped_df
-        .groupby([group_by_col, 'set'], as_index=False)['preference']
+        .groupby([group_by_col, 'set'], as_index=False, observed=False)['preference']
         .mean()
         .rename(columns={'preference': 'pref_mean_by_set'})
     )
 
-    # 2) 세트 평균들에 대해 최종 통계 (mean/std/max, 세트 수)
     stats = (
         per_set
         .groupby(group_by_col)
         .agg(
-            preference_mean=('pref_mean_by_set', 'mean'),  # 세트 평균들의 평균
-            preference_std=('pref_mean_by_set', 'std'),    # 세트 평균들의 표준편차
+            preference_mean=('pref_mean_by_set', 'mean'),  
+            preference_std=('pref_mean_by_set', 'std'),    
         )
         .fillna(0)
         .sort_values(['preference_mean'], ascending=[False])
@@ -91,7 +80,6 @@ def calculate_stats(grouped_df, group_by_col):
 sector_stats = calculate_stats(set_grouped, 'sector')
 size_stats = calculate_stats(set_grouped, 'marketcap_group')
 
-# 3) 종목 단위 집계 (요약/참고용)
 final_grouped = df.groupby(['ticker', 'name', 'sector', 'marketcap']).agg(
     buy_count=('is_buy', 'sum'),
     sell_count=('is_sell', 'sum')
@@ -102,9 +90,8 @@ final_grouped['preference'] = np.where(
     (final_grouped['sell_count'] - final_grouped['buy_count']).abs() / final_grouped['total_count'],
     0.0
 )
-final_grouped['marketcap_group'] = pd.qcut(final_grouped['marketcap'], 4, labels=['Q4', 'Q3', 'Q2', 'Q1'])
+final_grouped['marketcap_group'] = pd.qcut(final_grouped['marketcap'], 4, labels=['Q4', 'Q3', 'Q2', 'Q1'], duplicates='drop')
 
-# 4) 가장 선호/비선호 그룹 선택: preference_mean 기준, tie → preference_max
 def pick_groups(stats_df):
     if stats_df.empty or 'preference_mean' not in stats_df.columns:
         return 'N/A', 'N/A'
@@ -115,15 +102,12 @@ def pick_groups(stats_df):
 high_prefer_sector, low_prefer_sector = pick_groups(sector_stats)
 high_prefer_size, low_prefer_size = pick_groups(size_stats)
 
-# 4) 그룹 간 T-test 수행 (새로 수정된 부분)
 t_test_results = {}
 
-# 4-1) Sector 그룹 간 t-test
 if high_prefer_sector != 'N/A' and low_prefer_sector != 'N/A':
     high_sector_prefs = set_grouped[set_grouped['sector'] == high_prefer_sector]['preference']
     low_sector_prefs = set_grouped[set_grouped['sector'] == low_prefer_sector]['preference']
     
-    # 두 그룹의 데이터가 모두 존재할 때만 t-test 수행
     if not high_sector_prefs.empty and not low_sector_prefs.empty:
         stat, pval = ttest_ind(high_sector_prefs, low_sector_prefs, nan_policy='omit')
         mean_diff = high_sector_prefs.mean() - low_sector_prefs.mean()
@@ -136,12 +120,10 @@ if high_prefer_sector != 'N/A' and low_prefer_sector != 'N/A':
             'p_value': round(float(pval), 4),
         }
 
-# 4-2) Size 그룹 간 t-test
 if high_prefer_size != 'N/A' and low_prefer_size != 'N/A':
     high_size_prefs = set_grouped[set_grouped['marketcap_group'] == high_prefer_size]['preference']
     low_size_prefs = set_grouped[set_grouped['marketcap_group'] == low_prefer_size]['preference']
 
-    # 두 그룹의 데이터가 모두 존재할 때만 t-test 수행
     if not high_size_prefs.empty and not low_size_prefs.empty:
         stat, pval = ttest_ind(high_size_prefs, low_size_prefs, nan_policy='omit')
         mean_diff = high_size_prefs.mean() - low_size_prefs.mean()
@@ -175,20 +157,11 @@ summary = {
         'high_prefer_size_group': str(high_prefer_size),
         'low_prefer_size_group': str(low_prefer_size)
     },
-    't_test_results': t_test_results # 수정된 t-test 결과 저장
+    't_test_results': t_test_results
 }
 
-summary_path = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_bias_summary.json')
+summary_path = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_vol_result.json')
 with open(summary_path, 'w', encoding='utf-8') as f:
     json.dump(summary, f, indent=4, ensure_ascii=False)
 
 print(f"Bias summary saved to {summary_path}")
-
-# ────────────── Cleanup ──────────────
-for path in file_paths:
-    try:
-        os.remove(path)
-    except OSError as e:
-        print(f"Error removing file {path}: {e}")
-
-print(f"Removed {len(file_paths)} individual set CSV files.")
