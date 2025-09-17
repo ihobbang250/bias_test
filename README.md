@@ -22,6 +22,12 @@ This experiment aims to determine if an LLM has an inherent preference for a par
 
 ### Prerequisites
 - An API key for your chosen LLM provider (OpenAI, Gemini, Together).
+- Set up the following environment variables with your API keys:
+```bash
+export OPENAI_API_KEY="your-openai-api-key"
+export GEMINI_API_KEY="your-gemini-api-key"
+export TOGETHER_API_KEY="your-together-api-key"
+```
 
 ### Installation
 1.  Clone the repository:
@@ -58,4 +64,3 @@ The final output of the analysis is saved in the `result/` directory as two JSON
 
 -   `{MODEL_ID}_att_result.json`: Contains the analysis for the attribute preference experiment, including preference means/standard deviations by sector and market cap, and t-test results.
 -   `{MODEL_ID}_str_result.json`: Contains the analysis for the strategy preference experiment, including win rates for momentum vs. contrarian strategies and the Chi-squared test result.
-```
