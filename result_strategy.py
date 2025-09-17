@@ -21,7 +21,7 @@ MODEL_FILE_PREFIX = get_short_model_prefix(MODEL_ID)
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 # ────────────── Load & Combine Data ──────────────
-file_pattern = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_equal_int_set_*.csv')
+file_pattern = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_str_set_*.csv')
 file_paths = glob.glob(file_pattern)
 
 if not file_paths:
@@ -36,7 +36,7 @@ for i, path in enumerate(file_paths, 1):
     df_list.append(temp_df)
 
 df = pd.concat(df_list, ignore_index=True)
-combined_csv_path = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_int_combined.csv')
+combined_csv_path = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_str_combined.csv')
 df.to_csv(combined_csv_path, index=False)
 print(f"Combined {len(file_paths)} CSV files into a single DataFrame with {len(df)} rows.")
 
@@ -122,7 +122,7 @@ summary = {
     'chi_squared_test': chi_squared_result
 }
 
-summary_path = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_int_result.json')
+summary_path = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_str_result.json')
 with open(summary_path, 'w', encoding='utf-8') as f:
     json.dump(summary, f, indent=4, ensure_ascii=False)
 
