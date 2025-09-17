@@ -126,13 +126,12 @@ summary_path = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_int_result.json')
 with open(summary_path, 'w', encoding='utf-8') as f:
     json.dump(summary, f, indent=4, ensure_ascii=False)
 
-print(f"\nIntensity bias summary saved to {summary_path}")
 
-# # ────────────── Cleanup ──────────────
-# for path in file_paths:
-#     try:
-#         os.remove(path)
-#     except OSError as e:
-#         print(f"Error removing file {path}: {e}")
+# ────────────── Cleanup ──────────────
+for path in file_paths:
+    try:
+        os.remove(path)
+    except OSError as e:
+        print(f"Error removing file {path}: {e}")
 
-# print(f"\nCleanup complete. Removed {len(file_paths)} individual CSV files.")
+print(f"\nCleanup complete. Removed {len(file_paths)} individual CSV files.")

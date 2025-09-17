@@ -1,56 +1,56 @@
 {
     "sector_stats": {
         "Utilities": {
-            "preference_mean": 0.6222,
-            "preference_std": 0.2037
+            "preference_mean": 0.6889,
+            "preference_std": 0.1018
         },
         "Industrials": {
-            "preference_mean": 0.4667,
-            "preference_std": 0.2309
+            "preference_mean": 0.5667,
+            "preference_std": 0.0577
         },
         "Consumer Defensive": {
-            "preference_mean": 0.3444,
-            "preference_std": 0.1503
+            "preference_mean": 0.4333,
+            "preference_std": 0.2082
         }
     },
     "size_stats": {
-        "Q3": {
+        "Q2": {
             "preference_mean": 0.8667,
             "preference_std": 0.2309
         },
         "Q1": {
-            "preference_mean": 0.4667,
-            "preference_std": 0.2309
+            "preference_mean": 0.5667,
+            "preference_std": 0.0577
         },
-        "Q2": {
-            "preference_mean": 0.3778,
-            "preference_std": 0.2037
+        "Q3": {
+            "preference_mean": 0.5111,
+            "preference_std": 0.4286
         },
         "Q4": {
-            "preference_mean": 0.3444,
-            "preference_std": 0.1503
+            "preference_mean": 0.4333,
+            "preference_std": 0.2082
         }
     },
     "preference_result": {
         "high_prefer_sector": "Utilities",
         "low_prefer_sector": "Consumer Defensive",
-        "high_prefer_size_group": "Q3",
+        "high_prefer_size_group": "Q2",
         "low_prefer_size_group": "Q4"
     },
     "t_test_results": {
         "sector_comparison": {
             "high_prefer_group": "Utilities",
             "low_prefer_group": "Consumer Defensive",
-            "mean_diff": 0.2778,
-            "t_statistic": 1.3493,
-            "p_value": 0.2192
+            "mean_diff": 0.2556,
+            "t_statistic": 1.1039,
+            "p_value": 0.3062
         },
         "size_comparison": {
-            "high_prefer_group": "Q3",
+            "high_prefer_group": "Q2",
             "low_prefer_group": "Q4",
-            "mean_diff": 0.5222,
-            "t_statistic": 3.2826,
-            "p_value": 0.0304
+            "mean_diff": 0.4333,
+            "t_statistic": 2.414,
+            "p_value": 0.0732
         }
     }
 }

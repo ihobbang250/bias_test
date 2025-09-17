@@ -66,7 +66,7 @@ def calculate_stats(grouped_df, group_by_col):
 
     stats = (
         per_set
-        .groupby(group_by_col)
+        .groupby(group_by_col, observed=False)
         .agg(
             preference_mean=('pref_mean_by_set', 'mean'),  
             preference_std=('pref_mean_by_set', 'std'),    
@@ -164,4 +164,11 @@ summary_path = os.path.join(SAVE_DIR, f'{MODEL_FILE_PREFIX}_vol_result.json')
 with open(summary_path, 'w', encoding='utf-8') as f:
     json.dump(summary, f, indent=4, ensure_ascii=False)
 
-print(f"Bias summary saved to {summary_path}")
+# ────────────── Cleanup ──────────────
+for path in file_paths:
+    try:
+        os.remove(path)
+    except OSError as e:
+        print(f"Error removing file {path}: {e}")
+
+print(f"\nCleanup complete. Removed {len(file_paths)} individual CSV files.")
